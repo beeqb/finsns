@@ -92,4 +92,4 @@ ENV/
 *~
 
 # Projects
-settings.txt
+*.txt
