@@ -1,4 +1,11 @@
-This is the research project leading by Dr. Ren Fei (East China University of Science and Technology, ECUST) and collaborating with Dr. Yue Wu (East China University of Science and Technology). It contains a set of Python programs to collect data from SNS (e.g. Sina Weibo), analysis of the SNS data and utilise the results to predict the risk of financial market.
+This is the research project leading by Dr. Ren Fei (East China University of Science and Technology, ECUST) and collaborating with Dr. Yue Wu (East China University of Science and Technology). It contains a set of Python programs to collect data from SNS (e.g. Sina Weibo) and analyse the data for predicting the risk of financial market.
 
-The programs should work fine under *nix systems, but may have problems under Windows system.
+The programs is written with Python 2.7 and should work fine under *nix systems, but may have problems under Windows system.
 
+** Example
+ - Create a file named "settings.txt"
+ - Put "no: [username], psw: [password]" of different Sina Weibo accounts into the file. One line for an account
+no: abcd, psw: xxxx
+ - Run with
+python sina_crawler.py
+ - It stores the data in "spdbank.txt"
