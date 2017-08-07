@@ -93,3 +93,8 @@ ENV/
 
 # Projects
 *.txt
+
+# data
+rawdata/
+data/
+t*
