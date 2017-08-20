@@ -8,7 +8,8 @@ import lxml.html
 from bs4 import BeautifulSoup
 
 
-URL = 'http://search.sina.com.cn/?c=news&q=%s&range=all&time=custom&stime=2013-12-01&etime=2017-08-17&num=20&col=1_7&page=%d'
+# URL = 'http://search.sina.com.cn/?c=news&q=%s&range=all&time=custom&stime=2013-12-01&etime=2017-08-17&num=20&col=1_7&page=%d'
+URL = 'http://api.search.sina.com.cn/?q=%E6%B5%A6%E5%8F%91%E9%93%B6%E8%A1%8C&range=all&c=news&sort=time&ie=utf-8&from=dfz_api&time=custom&stime=2013-12-01&etime=2013-12-31&num=20&page=1&col=1_7'
 STOCKS_FILE = 'shangzheng180.csv'
 NUM_ITEMS = 20
 
