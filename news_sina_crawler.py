@@ -4,14 +4,15 @@
 
 import urllib2
 import unicodecsv as csv
-import lxml.html
+import json
 from bs4 import BeautifulSoup
 
 
 # URL = 'http://search.sina.com.cn/?c=news&q=%s&range=all&time=custom&stime=2013-12-01&etime=2017-08-17&num=20&col=1_7&page=%d'
-URL = 'http://api.search.sina.com.cn/?q=%E6%B5%A6%E5%8F%91%E9%93%B6%E8%A1%8C&range=all&c=news&sort=time&ie=utf-8&from=dfz_api&time=custom&stime=2013-12-01&etime=2013-12-31&num=20&page=1&col=1_7'
+# URL = 'http://api.search.sina.com.cn/?q=%s&range=all&c=news&time=custom&stime=%s&etime=%s&num=50&page=%d&col=1_7'
+URL = 'http://api.search.sina.com.cn/?c=news&q=%s&range=all&time=custom&stime=%s&etime=%s&num=50&col=1_7&page=%d&from=dfz_api'
 STOCKS_FILE = 'shangzheng180.csv'
-NUM_ITEMS = 20
+NUM_ITEMS = 50
 
 
 def get_stocks(f):
@@ -25,33 +26,28 @@ def get_stocks(f):
     return stocks, names
 
 
-def crawler(keyword, pg):
-    url = URL % (urllib2.quote(keyword.encode('gbk')), pg)
+def crawler(keyword, stime, etime, pg):
+    url = URL % (keyword, stime, etime, pg)
 #    url = URL % (urllib2.quote(keyword.decode('utf-8').encode('gbk')), pg)
-    page = urllib2.urlopen(url).read()
-    return page
+    resp = urllib2.urlopen(url).read()
+    return resp
 
 
-def process_page(page, pg):
-    content = lxml.html.fromstring(page)
+def process_page(resp, pg):
+    content = (json.loads(resp))['result']
     if pg == 1:
-        t = content.cssselect('div#result div.l_v2')[0].text_content()
-        total_num = int(''.join([s for s in t if s.isdigit()]))
-    items = content.cssselect('div#result div.box-result')
+        total_num = int(content['count'])
     titles = []
     dates = []
     times = []
     sources = []
     contents = []
-    for item in items:
-        header = item.cssselect('h2')[0]
-        title_link = header.cssselect('a')[0]
-        titles.append(title_link.text_content().encode('utf-8'))
-        meta = header.cssselect('span.fgray_time')[0].text_content().split(' ')
-        sources.append(meta[0].encode('utf-8'))
-        dates.append(meta[1].encode('utf-8'))
-        times.append(meta[2].encode('utf-8'))
-        url = title_link.get('href')
+    for item in content['list']:
+        titles.append(item['title'])
+        sources.append(item['media'])
+        dates.append(item['datetime'].split(' ')[0])
+        times.append(item['datetime'].split(' ')[1])
+        url = item['url']
         contents.append(get_content(url))
     if pg == 1:
         return total_num, titles, dates, times, sources, contents
