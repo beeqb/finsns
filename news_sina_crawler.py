@@ -79,24 +79,26 @@ def gen_time():
     return stime, etime
 
 
-def start_crawler(name, writer):
-    is_end = 0
-    is_retry = 0
-    n_page = 1
-    while not is_end:
-        resp = crawler(name, n_page)
-        titles, dates, times, sources, contents = process_resp(resp, n_page)
-        if not titles:
+def start_crawler(name, stime, etime, writer):
+    for s, e in zip(stime, etime):
+        is_end = 0
+        is_retry = 0
+        n_page = 1
+
+        while not is_end:
+            resp = crawler(name, s, e, n_page)
+            titles, dates, times, sources, contents = process_resp(resp, n_page)
+            if not titles:
+                if is_retry:
+                    is_end = 1
+                else:
+                    is_retry = 1
+                    continue
             if is_retry:
-                is_end = 1
-            else:
-                is_retry = 1
-            continue
-        if is_retry:
-            is_retry = 0
-        for title, date, time, source, content in zip(titles, dates, times, sources, contents):
-            writer.writerow([title, date, time, source, content])
-        n_page = n_page + 1
+                is_retry = 0
+            for title, date, time, source, content in zip(titles, dates, times, sources, contents):
+                writer.writerow([title, date, time, source, content])
+                n_page = n_page + 1
 
 
 def main():
