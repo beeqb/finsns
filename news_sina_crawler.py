@@ -27,7 +27,7 @@ def get_stocks(f):
 
 
 def crawler(keyword, stime, etime, pg):
-    url = URL % (keyword, stime, etime, pg)
+    url = URL % (urllib2.quote(keyword), stime, etime, pg)
 #    url = URL % (urllib2.quote(keyword.decode('utf-8').encode('gbk')), pg)
     resp = urllib2.urlopen(url).read()
     return resp
@@ -105,11 +105,13 @@ def main():
     with open(STOCKS_FILE, 'rb') as f:
         stocks, names = get_stocks(f)
 
+    stime, etime = gen_time()
+
     for stock, name in zip(stocks, names):
         print 'Start getting %s:.....' % (stock.encode('gbk'))
         with open('%s.csv' % stock.encode('gbk'), 'wb') as f:
             writer = csv.writer(f)
-            start_crawler(name, writer)
+            start_crawler(name, stime, etime, writer)
 
 if __name__ == '__main__':
     main()
