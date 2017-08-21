@@ -33,7 +33,7 @@ def crawler(keyword, stime, etime, pg):
     return resp
 
 
-def process_page(resp, pg):
+def process_resp(resp, pg):
     content = (json.loads(resp))['result']
     if pg == 1:
         total_num = int(content['count'])
@@ -50,9 +50,9 @@ def process_page(resp, pg):
         url = item['url']
         contents.append(get_content(url))
     if pg == 1:
-        return total_num, titles, dates, times, sources, contents
-    else:
-        return titles, dates, times, sources, contents
+        print total_num
+
+    return titles, dates, times, sources, contents
 
 
 def get_content(url):
@@ -71,6 +71,34 @@ def get_content(url):
     return ''.join(article)
 
 
+def gen_time():
+    years = [i for i in range(2013, 2018)]
+    months = [i for i in range(1, 13)]
+    stime = ['%d-%d-1' % (i, j) for i, j in zip(years, months)]
+    etime = ['%d-%d-31' % (i, j) for i, j in zip(years, months)]
+    return stime, etime
+
+
+def start_crawler(name, writer):
+    is_end = 0
+    is_retry = 0
+    n_page = 1
+    while not is_end:
+        resp = crawler(name, n_page)
+        titles, dates, times, sources, contents = process_resp(resp, n_page)
+        if not titles:
+            if is_retry:
+                is_end = 1
+            else:
+                is_retry = 1
+            continue
+        if is_retry:
+            is_retry = 0
+        for title, date, time, source, content in zip(titles, dates, times, sources, contents):
+            writer.writerow([title, date, time, source, content])
+        n_page = n_page + 1
+
+
 def main():
     with open(STOCKS_FILE, 'rb') as f:
         stocks, names = get_stocks(f)
@@ -79,18 +107,7 @@ def main():
         print 'Start getting %s:.....' % (stock.encode('gbk'))
         with open('%s.csv' % stock.encode('gbk'), 'wb') as f:
             writer = csv.writer(f)
-            page = crawler(name, 1)
-            total_num, titles, dates, times, sources, contents = process_page(page, 1)
-            print total_num
-            for title, date, time, source, content in zip(titles, dates, times, sources, contents):
-                writer.writerow([title, date, time, source, content])
-            if total_num > 20:
-                total_page = total_num / NUM_ITEMS + (total_num % NUM_ITEMS > 0)
-                for i in xrange(2, total_page+1):
-                    titles, dates, times, sources, contents = process_page(page, i)
-                    for title, date, time, source, content in zip(titles, dates, times, sources, contents):
-                        writer.writerow([title, date, time, source, content])
-
+            start_crawler(name, writer)
 
 if __name__ == '__main__':
     main()
