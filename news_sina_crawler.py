@@ -26,10 +26,21 @@ def get_stocks(f):
     return stocks, names
 
 
-def crawler(keyword, stime, etime, pg):
-    url = URL % (keyword, stime, etime, pg)
+def crawler(keyword, **kargs):
+    if not kargs:
+        url = keyword
+    else:
+        url = URL % (keyword, kargs['stime'], kargs['etime'], kargs['pg'])
+    retry = 0
+    while retry < 3:
+        try:
+            resp = urllib2.urlopen(url).read()
+        except:
+            retry = retry + 1
+    if retry == 3:
+        print url
+        return 0
 #    url = URL % (urllib2.quote(keyword.decode('utf-8').encode('gbk')), pg)
-    resp = urllib2.urlopen(url).read()
     return resp
 
 
@@ -55,10 +66,8 @@ def process_resp(resp, pg):
 
 
 def get_content(url):
-    try:
-        page = urllib2.urlopen(url).read()
-    except urllib2.URLError:
-        print url
+    page = crawler(url)
+    if page == 0:
         return url
     dom_page = BeautifulSoup(page, 'html.parser')
     content = dom_page.select('div#artibody')
@@ -89,7 +98,9 @@ def start_crawler(name, stime, etime, writer):
         n_page = 1
 
         while not is_end:
-            resp = crawler(name, s, e, n_page)
+            resp = crawler(name, stime=s, etime=e, pg=n_page)
+            if resp == 0:
+                continue
             titles, dates, times, sources, contents = process_resp(resp, n_page)
             if not titles:
                 if is_retry:
