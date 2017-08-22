@@ -35,6 +35,7 @@ def crawler(keyword, **kargs):
     while retry < 3:
         try:
             resp = urllib2.urlopen(url).read()
+            break
         except:
             retry = retry + 1
     if retry == 3:
