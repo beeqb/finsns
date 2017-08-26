@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from news.search import search_csv
+from news.content import gcrawler
+from news.process import Finnews
 import unicodecsv as csv
 
 
