@@ -11,15 +11,15 @@ URLS_FILE = '../newsrecord/%s.csv'
 SIZE = 1000
 
 
-def get_stocks(f):
-    csv_data = csv.reader(f)
-    # csv_data = csv.reader(f, encoding='utf-8')
-    stocks = []
-    names = []
-    for row in csv_data:
-        stocks.append(row[0])
-        names.append(row[1])
-    return stocks, names
+# def get_stocks(f):
+#     csv_data = csv.reader(f)
+#     # csv_data = csv.reader(f, encoding='utf-8')
+#     stocks = []
+#     names = []
+#     for row in csv_data:
+#         stocks.append(row[0])
+#         names.append(row[1])
+#     return stocks, names
 
 
 def get_contents(f, urls, kw, titles):
@@ -53,8 +53,8 @@ def get_contents(f, urls, kw, titles):
 
 
 def main():
-    with open(STOCKS_FILE, 'r') as f:
-        stocks, names = get_stocks(f)
+    # with open(STOCKS_FILE, 'r') as f:
+    #     stocks, names = get_stocks(f)
 
     ef = open('url_errors.txt', 'w')
 
@@ -62,7 +62,10 @@ def main():
     # stocks = ['600000']
     # names = ['浦发银行']
 
-    for stock, name in zip(stocks, names):
+    # for stock, name in zip(stocks, names):
+    with open(STOCKS_FILE, 'r') as fr:
+        l = fr.readline().rstrip('\n')
+        stock, name = l.split(',')
         print('Start getting %s, %s:.....' % (stock, name))
         urls = []
         titles = []
