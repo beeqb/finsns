@@ -1,25 +1,24 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 
 from news.process import Finnews
 #import unicodecsv as csv
 import csv
-import unicodecsv
 
 
-STOCKS_FILE = '../shangzheng180.csv'
+STOCKS_FILE = '../shangzheng180utf8.csv'
 DATA_FILE = '../newscontents/%s.txt'
 URLS_FILE = '../newsrecord/%s.csv'
 SIZE = 1000
 
 
 def get_stocks(f):
-    csv_data = unicodecsv.reader(f, encoding='gbk')
+    csv_data = csv.reader(f)
     # csv_data = csv.reader(f, encoding='utf-8')
     stocks = []
     names = []
     for row in csv_data:
-        stocks.append(row[0].encode('utf-8'))
-        names.append(row[1].encode('utf-8'))
+        stocks.append(row[0])
+        names.append(row[1])
     return stocks, names
 
 
@@ -54,7 +53,7 @@ def get_contents(f, urls, kw, titles):
 
 
 def main():
-    with open(STOCKS_FILE, 'rb') as f:
+    with open(STOCKS_FILE, 'r') as f:
         stocks, names = get_stocks(f)
 
     ef = open('url_errors.txt', 'w')
