@@ -64,18 +64,19 @@ def main():
 
     # for stock, name in zip(stocks, names):
     with open(STOCKS_FILE, 'r') as fr:
-        l = fr.readline().rstrip('\n')
-        stock, name = l.split(',')
-        print('Start getting %s, %s:.....' % (stock, name))
-        urls = []
-        titles = []
-        with open(URLS_FILE % stock, 'r') as f:
-            csv_data = csv.reader(f)
-            for row in csv_data:
-                titles.append(row[0].strip('"'))
-                urls.append(row[4].strip('"'))
-        with open(DATA_FILE % stock, 'w') as f:
-            get_contents(f, urls, name, titles)
+        for i in range(180):
+            l = fr.readline().rstrip('\n')
+            stock, name = l.split(',')
+            print('Start getting %s, %s:.....' % (stock, name))
+            urls = []
+            titles = []
+            with open(URLS_FILE % stock, 'r') as f:
+                csv_data = csv.reader(f)
+                for row in csv_data:
+                    titles.append(row[0].strip('"'))
+                    urls.append(row[4].strip('"'))
+                with open(DATA_FILE % stock, 'w') as f:
+                    get_contents(f, urls, name, titles)
 
     ef.close()
 

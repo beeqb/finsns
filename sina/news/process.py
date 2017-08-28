@@ -2,7 +2,7 @@
 
 
 from bs4 import BeautifulSoup
-from news.content import gcrawler
+from news.content import gcrawler, aiocrawler
 
 
 class News:
@@ -12,9 +12,15 @@ class News:
     def fetch_contents(self):
         self.resps = gcrawler(self.urls)
 
+    def aio_fetch_contents(self):
+        self.resps = aiocrawler(self.urls)
+
     def get_artibody(self, resp):
-        resp.encoding = 'gb2312'
-        page = resp.text
+        if type(resp) is bytes:
+            page = resp.decode('gb2312')
+        else:
+            resp.encoding = 'gb2312'
+            page = resp.text
         dom_page = BeautifulSoup(page, 'html.parser')
         return dom_page.select('div#artibody')
 
