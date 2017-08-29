@@ -30,7 +30,7 @@ class Finnews(News):
         super().__init__(urls)
 
     def start(self):
-        super().aio_fetch_contents()
+        super().fetch_contents()
         return len(self.resps)
 
     def get_content(self, i):

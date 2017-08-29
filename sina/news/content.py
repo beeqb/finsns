@@ -11,31 +11,28 @@ def gcrawler(urls):
     return grequests.map(rs, size=1000)
 
 
-class AsyncGetContents:
-    def __init__(self, urls):
-        self.urls = urls
+# def __init__(self, urls):
+#         self.urls = urls
 
-    async def fetch(self, url, session):
-        async with session.get(url) as response:
-            return await response.read()
+async def fetch(url, session):
+    async with session.get(url) as response:
+        return await response.read()
 
-    async def run(self):
-        tasks = []
+async def run(urls):
+    tasks = []
 
-        # Fetch all responses within one Client session,
-        # keep connection alive for all requests.
-        async with ClientSession() as session:
-            for url in self.urls:
-                task = asyncio.ensure_future(self.fetch(url, session))
-                tasks.append(task)
+    # Fetch all responses within one Client session,
+    # keep connection alive for all requests.
+    async with ClientSession() as session:
+        for url in urls:
+            task = asyncio.ensure_future(fetch(url, session))
+            tasks.append(task)
 
-        resps = await asyncio.gather(*tasks)
-        return resps
-        # you now have all response bodies in this variable
+    resps = await asyncio.gather(*tasks)
+    return resps
 
 
 def aiocrawler(urls):
-    agc = AsyncGetContents(urls)
     loop = asyncio.get_event_loop()
-    future = asyncio.ensure_future(agc.run())
-    loop.run_until_complete(future)
+    future = asyncio.ensure_future(run(urls))
+    return loop.run_until_complete(future)
