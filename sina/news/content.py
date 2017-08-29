@@ -26,7 +26,7 @@ class AsyncGetContents:
         # keep connection alive for all requests.
         async with ClientSession() as session:
             for url in self.urls:
-                task = asyncio.ensure_future(fetch(url, session))
+                task = asyncio.ensure_future(self.fetch(url, session))
                 tasks.append(task)
 
         resps = await asyncio.gather(*tasks)
