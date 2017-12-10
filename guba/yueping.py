@@ -45,6 +45,7 @@ def extract_list_pages(list_pages):
     tiezi_doms = list(map(lambda x: x.select('div#articlelistnew div.articleh'), list_pages))
     tiezi_list = reduce(lambda x, y: x+y, tiezi_doms)
     tiezi_urls = []
+    gp_tiezi_ids = []
     for x in tiezi_list:
         url_doms = x.select('span.l3 a')
         if not url_doms:
@@ -85,10 +86,11 @@ def get_yueping(urls):
     return (titles, yuedus, pingluns)
 
 
-def writecsv(titles, yuedus, pingluns, wf):
+def writecsv(tiezi_urls, titles, yuedus, pingluns, wf):
         ttime=time.strftime("%Y-%m-%d %H:%M", time.localtime())
-        for t, y, p in zip(titles, yuedus, pingluns):
-            wf.write('"'+t+'"'+','+y+','+p+','+ttime+'\n')
+        for t_url, t, y, p in zip(tiezi_urls, titles, yuedus, pingluns):
+            t_id = (t_url.split(',')[2]).split('.')[0]
+            wf.write(t_id + ',' + '"'+t+'"'+','+y+','+p+','+ttime+'\n')
         
 def main():
     with open('code.txt', 'r') as rf:
@@ -104,7 +106,7 @@ def main():
             tiezi_urls = list(tiezi_list[gp])
             titles, yuedus, pingluns = get_yueping(tiezi_urls)
             with open('%s.csv'%gp, 'a', encoding='utf-8') as wf:
-                writecsv(titles, yuedus, pingluns, wf)
+                writecsv(tiezi_urls, titles, yuedus, pingluns, wf)
 
 
 if __name__ == '__main__':
