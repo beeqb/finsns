@@ -135,7 +135,7 @@ def main():
 
             wait_time = 300 - (time.time() - s_time)
             if wait_time > 0:
-                time.sleep(300)
+                time.sleep(wait_time)
             else:
                 print('Longer than 5mins: ', len(tiezi_ids))
                 continue
