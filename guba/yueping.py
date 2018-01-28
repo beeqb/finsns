@@ -3,7 +3,7 @@
 import time
 import re
 from functools import *
-from crawler import gcrawler
+import grequests
 from bs4 import BeautifulSoup
 
 
@@ -12,6 +12,11 @@ URL2 = 'http://guba.eastmoney.com/list,%s_2.html'
 TIEZI_URL = 'http://guba.eastmoney.com/'
 
 tiezi_list = {}
+
+def gcrawler(urls):
+    rs = (grequests.get(u, timeout=10) for u in urls)
+    return grequests.map(rs, size=1000)
+
 
 def get_codes(cf):
     return list(map(lambda x: x.rstrip(), cf.readlines()))
@@ -45,7 +50,6 @@ def extract_list_pages(list_pages):
     tiezi_doms = list(map(lambda x: x.select('div#articlelistnew div.articleh'), list_pages))
     tiezi_list = reduce(lambda x, y: x+y, tiezi_doms)
     tiezi_urls = []
-    gp_tiezi_ids = []
     for x in tiezi_list:
         url_doms = x.select('span.l3 a')
         if not url_doms:
@@ -56,7 +60,7 @@ def extract_list_pages(list_pages):
         if '/' in url:
             url = url[1:]
         tiezi_urls.append(TIEZI_URL+url)
-        
+
     return set(tiezi_urls)
 
 
@@ -64,8 +68,11 @@ def get_yueping(urls):
     resps = gcrawler(urls)
     tiezis = []
     for x in resps:
-        x.encoding = 'utf-8'
-        tiezis.append(BeautifulSoup(x.text, 'html.parser'))
+        try:
+            x.encoding = 'utf-8'
+            tiezis.append(BeautifulSoup(x.text, 'html.parser'))
+        except:
+            continue
     yuedus = []
     pingluns = []
     titles = []
@@ -86,12 +93,12 @@ def get_yueping(urls):
     return (titles, yuedus, pingluns)
 
 
-def writecsv(tiezi_urls, titles, yuedus, pingluns, wf):
+def writecsv(titles, yuedus, pingluns, wf):
         ttime=time.strftime("%Y-%m-%d %H:%M", time.localtime())
-        for t_url, t, y, p in zip(tiezi_urls, titles, yuedus, pingluns):
-            t_id = (t_url.split(',')[2]).split('.')[0]
-            wf.write(t_id + ',' + '"'+t+'"'+','+y+','+p+','+ttime+'\n')
-        
+        for t, y, p in zip(titles, yuedus, pingluns):
+            wf.write('"'+t+'"'+','+y+','+p+','+ttime+'\n')
+
+
 def main():
     with open('code.txt', 'r') as rf:
         gupiaos = get_codes(rf)
@@ -100,15 +107,20 @@ def main():
         tiezi_list[gp] = init_tiezi_set(gp)
 
     while True:
-        for gp in gupiaos:
-            update_tiezi_set(gp)
-            print('Start to get %s: ....'%(gp))
-            tiezi_urls = list(tiezi_list[gp])
-            titles, yuedus, pingluns = get_yueping(tiezi_urls)
-            with open('%s.csv'%gp, 'a', encoding='utf-8') as wf:
-                writecsv(tiezi_urls, titles, yuedus, pingluns, wf)
+        print('start')
+        try:
+            for gp in gupiaos:
+                update_tiezi_set(gp)
+                print('Start to get %s: ....'%(gp))
+                tiezi_urls = list(tiezi_list[gp])
+                titles, yuedus, pingluns = get_yueping(tiezi_urls)
+                with open('%s.csv'%gp, 'a', encoding='utf-8') as wf:
+                    writecsv(titles, yuedus, pingluns, wf)
+            print('end')
+            time.sleep(300)
+        except:
+            continue
 
 
 if __name__ == '__main__':
     main()
-    
