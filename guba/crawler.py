@@ -3,7 +3,6 @@
 
 import grequests
 
-
-def gcrawler(urls):
+def gcrawler(self, urls):
     rs = (grequests.get(u, timeout=10) for u in urls)
     return grequests.map(rs, size=1000)
