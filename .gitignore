@@ -97,7 +97,7 @@ ENV/
 # data
 rawdata/
 data/
-t*
+test*
 *.csv
 /600000
 *.7z
