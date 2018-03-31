@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from functools import *
 from bs4 import BeautifulSoup
 
 
 class TieZi:
-    def __init__(self, resps):
-        self.resps = resps
-        self.resps.encoding = 'utf-8'
-        self.tiezi = BeautifulSoup(self.resps.text, 'html.parser')
-        self.reply_list = self.tiezi.select('div#zwlist div.zwli')
+    def __init__(self, resp):
+        self.resp = resp
+        if self.resp:
+            self.set_tiezi(resp)
 
-    def get_main_content(self):
+    def get_content(self):
         content = self.content.select('div#zwconbody div')[0].text.strip()
         return content
 
@@ -33,7 +31,7 @@ class TieZi:
 
     def get_list(self):
         """Return: None: if no reply and end continue get replies
-                        List of replies: [(id, author_name, author_id, author_url, content, is_reply, r_id, r_author_name, r_author_id, r_author_url, r_content),....]
+                   List of replies: [(id, author_name, author_id, author_url, content, is_reply, r_id, r_author_name, r_author_id, r_author_url, r_content),....]
 """
         if not self.reply_list:
             return None
@@ -65,10 +63,16 @@ class TieZi:
                 rr_author_id = rr[0].select('a')[0]['data-popper']
                 rr_author_url = rr[0].select('a')[0]['href']
                 r_content = rr[0].select('a')[0].text.strip()
-            rl.append((r_id, r_author_name, r_author_id, r_author_url, content, is_reply, rr_id, rr_author_name, rr_author_id, rr_author_url, r_content))
+            rl.append((r_id, r_author_name, r_author_id, r_author_url, content, is_reply,
+                       rr_id, rr_author_name, rr_author_id, rr_author_url, r_content))
 
         return rl
 
     def get_pager(self):
         return len(self.tiezi.select('div.pager')) > 0
-        
+
+    def set_tiezi(self, resp):
+        self.resp = resp
+        self.resp.encoding = 'utf-8'
+        self.tiezi = BeautifulSoup(self.resp.text, 'html.parser')
+        self.reply_list = self.tiezi.select('div#zwlist div.zwli')
