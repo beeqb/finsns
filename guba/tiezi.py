@@ -4,8 +4,9 @@ from bs4 import BeautifulSoup
 
 
 class TieZi:
-    def __init__(self, resp):
+    def __init__(self, resp, errfile=None):
         self.resp = resp
+        self.errf = errfile
         if self.resp:
             self.set_tiezi(resp)
 

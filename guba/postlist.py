@@ -6,10 +6,10 @@ TIEZI_URL = 'http://guba.eastmoney.com/'
 
 
 class PostList:
-    def __init__(self, pl):
+    def __init__(self, pl=None, errfile=None):
         self.pl = self.pl
-        self.posts_dom = self.pl.select('div#articlelistnew div.articleh')
-        self.post = Tiezi()
+        self.errf = errfile
+        self.post = Tiezi(self.errf)
 
     def get_posts(self):
         '''Return: [(id, url, title, yuedu, pinglun), ...]   '''
