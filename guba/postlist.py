@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from tiezi import Tiezi
+from tiezi import TieZi
 
 TIEZI_URL = 'http://guba.eastmoney.com/'
 
 
 class PostList:
-    def __init__(self, pl=None, errfile=None):
-        self.pl = self.pl
+    def __init__(self, crawler=None, errfile=None):
+        self.crawler = crawler
         self.errf = errfile
-        self.post = Tiezi(self.errf)
+        self.pl = None
+        self.post_detail = TieZi(self.crawler, self.errf)
 
-    def get_posts(self):
+    def fetch_posts(self):
         '''Return: [(id, url, title, yuedu, pinglun), ...]   '''
         posts = []
         for x in self.posts_dom:
+            tiezi = {}
             if x.select('em'):
                 continue
             url_doms = x.select('span.l3 a')
@@ -25,13 +27,18 @@ class PostList:
                 continue
             if '/' in url:
                 url = url[1:]
-            title = url_doms[0].text.strip()
-            yuedu = x.select('span.l1')[0].text
-            pinglun = x.select('span.l2')[0].text
-            pid = url.split(',')[2].split('.')[0]
-            posts.append((pid, TIEZI_URL+url, title, yuedu, pinglun))
-
+            tiezi['title'] = url_doms[0].text.strip()
+            tiezi['yuedu'] = x.select('span.l1')[0].text
+            tiezi['pinglun'] = x.select('span.l2')[0].text
+            tiezi['pid'] = url.split(',')[2].split('.')[0]
+            tiezi['url'] = TIEZI_URL + url
+            tiezi['detail'] = self.get_post_details(tiezi['url'])
+            posts.append(tiezi)
         return posts
+
+    def get_post_details(self, url):
+        self.post_detail.init_tiezi(url)
+        return self.post_detail.fetch_tiezi_details()
 
     def set_posts_list(self, pl):
         self.pl = pl

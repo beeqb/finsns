@@ -2,78 +2,103 @@
 
 from bs4 import BeautifulSoup
 
-
 class TieZi:
-    def __init__(self, resp, errfile=None):
-        self.resp = resp
+    def __init__(self, crawler=None, errfile=None):
+        self.crawler = crawler
+        self.resp = None
+        self.url = ''
         self.errf = errfile
-        if self.resp:
-            self.set_tiezi(resp)
+        self.tiezi = {}
+        self.base_url = ''
+        self.content = None
+        self.page = 1
 
     def get_content(self):
-        content = self.content.select('div#zwconbody div')[0].text.strip()
+        content = self.content.select('div#zwconbody div')[0]
         return content
 
     def get_author(self):
         """Return:
-                 author_id, author_name, author_url, fa_time, fa_device
+                 author_id, author_name, author_url, fa_date, fa_time, fa_device
         """
         author_sec = self.content.select('div#zwcontt div#zwconttb')[0]
         author = author_sec.select('div#zwconttbn strong a')[0]
         author_id = author['data-popper']
         author_name = author.text.strip()
         author_url = author['href']
-
-        fa_info =  author_sec.select('div.zwfbtime')[0].text.strip()
-        fa_time = ' '.join(fa_info.split(' ')[1:3])
+        fa_info = author_sec.select('div.zwfbtime')[0].text.strip()
+        fa_date = fa_info.split(' ')[1]
+        fa_time = fa_info.split(' ')[2]
         fa_device = fa_info.split(' ')[-1]
+        return author_id, author_name, author_url, fa_date, fa_time, fa_device
 
-        return author_id, author_name, author_url, fa_time, fa_device
-
-    def get_list(self):
+    def get_reply_list(self):
         """Return: None: if no reply and end continue get replies
                    List of replies: [(id, author_name, author_id, author_url, content, is_reply, r_id, r_author_name, r_author_id, r_author_url, r_content),....]
 """
         if not self.reply_list:
             return None
-
         rl = []
         for r in self.reply_list:
             # get id
-            r_id = r['data-huifuid']
+            r_el = {}
+            r_el['r_id'] = r['data-huifuid']
             # get author
             r_author = r.select('div.zwlianame a')[0]
-            r_author_name = r_author.text
-            r_author_url = r_author['href']
-            r_author_id = r_author['data-popper']
+            r_el['r_author_name'] = r_author.text
+            r_el['r_author_url'] = r_author['href']
+            r_el['r_author_id'] = r_author['data-popper']
             # content
-            content = r.select('div.zwlitext')[0].text.strip()
+            r_el['content'] = r.select('div.zwlitext')[0].text.strip()
             # get reply content
             reply = r.select('div.zwlitalkbox div.zwlitalkboxtext')
             if not reply:
-                is_reply = 0
-                rr_id = ''
-                rr_author_name = ''
-                rr_author_id = ''
-                rr_author_url = ''
-                r_content = ''
+                r_el['is_reply'] = 0
+                r_el['rr_id'] = ''
+                r_el['rr_author_name'] = ''
+                r_el['rr_author_id'] = ''
+                r_el['rr_author_url'] = ''
+                r_el['r_content'] = ''
             else:
-                is_reply = 1
-                rr_id = rr[0]['data-huifuid']
-                rr_author_name = rr[0].select('a')[0].text
-                rr_author_id = rr[0].select('a')[0]['data-popper']
-                rr_author_url = rr[0].select('a')[0]['href']
-                r_content = rr[0].select('a')[0].text.strip()
-            rl.append((r_id, r_author_name, r_author_id, r_author_url, content, is_reply,
-                       rr_id, rr_author_name, rr_author_id, rr_author_url, r_content))
-
+                r_el['is_reply'] = 1
+                r_el['rr_id'] = reply[0]['data-huifuid']
+                r_el['rr_author_name'] = reply[0].select('a')[0].text
+                r_el['rr_author_id'] = reply[0].select('a')[0]['data-popper']
+                r_el['rr_author_url'] = reply[0].select('a')[0]['href']
+                r_el['r_content'] = reply[0].select('a')[0].text.strip()
+            rl.append(r_el)
         return rl
 
-    def get_pager(self):
-        return len(self.tiezi.select('div.pager')) > 0
+    def get_next_page(self):
+        self.page = self.page + 1
+        url_base = self.base_url.split('.html')[0]
+        url = url_base + '_%d' % self.page + '.html'
+        self._fetch_tiezi(url)
 
-    def set_tiezi(self, resp):
-        self.resp = resp
-        self.resp.encoding = 'utf-8'
-        self.tiezi = BeautifulSoup(self.resp.text, 'html.parser')
-        self.reply_list = self.tiezi.select('div#zwlist div.zwli')
+    def init_tiezi(self, url):
+        self.base_url = url
+        self._fetch_tiezi(url)
+
+    def _fetch_tiezi(self, url):
+        self.resp = self.crawler.fetch(url)
+        if self.resp:
+            self.resp.encoding = 'utf-8'
+            self.content = BeautifulSoup(self.resp.text, 'html.parser')
+            self.reply_list = self.content.select('div#zwlist div.zwli')
+
+    def fetch_tiezi_details(self):
+        self.tiezi['content'] = self.get_content()
+        self.tiezi['author_id'],\
+        self.tiezi['author_name'],\
+        self.tiezi['author_url'],\
+        self.tiezi['fa_date'],\
+        self.tiezi['fa_time'],\
+        self.tiezi['fa_device'] = self.get_author()
+        self.tiezi['replies'] = []
+        while True:
+            replies = self.get_reply_list()
+            if not replies:
+                break
+            self.tiezi['replies'] = self.tiezi['replies'] + replies
+            self.get_next_page()
+        return self.tiezi
