@@ -34,7 +34,7 @@ class TieZi:
 
     def get_reply_list(self):
         """Return: None: if no reply and end continue get replies
-                   List of replies: [(id, author_name, author_id, author_url, content, is_reply, r_id, r_author_name, r_author_id, r_author_url, r_content),....]
+                   List of replies: [(id, author_name, author_id, author_url, content, date, time, is_reply, r_id, r_author_name, r_author_id, r_author_url, r_content),....]
 """
         if not self.reply_list:
             return None
@@ -45,11 +45,14 @@ class TieZi:
             r_el['r_id'] = r['data-huifuid']
             # get author
             r_author = r.select('div.zwlianame a')[0]
-            r_el['r_author_name'] = r_author.text
+            r_el['r_author_name'] = r_author.text.strip()
             r_el['r_author_url'] = r_author['href']
             r_el['r_author_id'] = r_author['data-popper']
             # content
-            r_el['content'] = r.select('div.zwlitext')[0].text.strip()
+            r_el['content'] = r.select('div.zwlitext')[0]
+            # date and time
+            r_el['r_date'] = r.select('div.zwlitime')[0].text.split(' ')[1]
+            r_el['r_time'] = r.select('div.zwlitime')[0].text.split(' ')[2]
             # get reply content
             reply = r.select('div.zwlitalkbox div.zwlitalkboxtext')
             if not reply:
@@ -65,7 +68,7 @@ class TieZi:
                 r_el['rr_author_name'] = reply[0].select('a')[0].text
                 r_el['rr_author_id'] = reply[0].select('a')[0]['data-popper']
                 r_el['rr_author_url'] = reply[0].select('a')[0]['href']
-                r_el['r_content'] = reply[0].select('a')[0].text.strip()
+                r_el['r_content'] = reply[0].select('a')[0]
             rl.append(r_el)
         return rl
 
@@ -73,11 +76,11 @@ class TieZi:
         self.page = self.page + 1
         url_base = self.base_url.split('.html')[0]
         url = url_base + '_%d' % self.page + '.html'
-        self._fetch_tiezi(url)
+        return self._fetch_tiezi(url)
 
     def init_tiezi(self, url):
         self.base_url = url
-        self._fetch_tiezi(url)
+        return self._fetch_tiezi(url)
 
     def _fetch_tiezi(self, url):
         self.resp = self.crawler.fetch(url)
@@ -85,8 +88,13 @@ class TieZi:
             self.resp.encoding = 'utf-8'
             self.content = BeautifulSoup(self.resp.text, 'html.parser')
             self.reply_list = self.content.select('div#zwlist div.zwli')
+            return 1
+        else:
+            return 0
 
     def fetch_tiezi_details(self):
+        if not self.resp:
+            return 0
         self.tiezi['content'] = self.get_content()
         self.tiezi['author_id'],\
         self.tiezi['author_name'],\
@@ -100,5 +108,6 @@ class TieZi:
             if not replies:
                 break
             self.tiezi['replies'] = self.tiezi['replies'] + replies
-            self.get_next_page()
+            if not self.get_next_page():
+                break
         return self.tiezi

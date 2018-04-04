@@ -11,6 +11,7 @@ class PostList:
         self.errf = errfile
         self.pl = None
         self.post_detail = TieZi(self.crawler, self.errf)
+        self.posts_dom = None
 
     def fetch_posts(self):
         '''Return: [(id, url, title, yuedu, pinglun), ...]   '''
@@ -37,8 +38,10 @@ class PostList:
         return posts
 
     def get_post_details(self, url):
-        self.post_detail.init_tiezi(url)
-        return self.post_detail.fetch_tiezi_details()
+        if self.post_detail.init_tiezi(url):
+            return self.post_detail.fetch_tiezi_details()
+        else:
+            return 0
 
     def set_posts_list(self, pl):
         self.pl = pl

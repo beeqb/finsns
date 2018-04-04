@@ -49,10 +49,18 @@ class GuBa:
         self.url = GUBA_URL % (self.code, self.page)
 
     def run(self):
-        is_stop = 0
+        is_stop = False
+        t_retry = 0
         while not is_stop:
             flag = self.fetch_posts_page()
-            if not flag:
+            if not flag and t_retry < 3:
+                t_retry = t_retry + 1
                 continue
-            is_stop = self.fetch_posts()
+            elif not flag:
+                t_retry = 0
+                self.update_url()
+            else:
+                t_retry = 0
+                is_stop = self.fetch_posts()
+                self.update_url()
         return self.tiezis
