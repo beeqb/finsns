@@ -14,14 +14,18 @@ class TieZi:
         self.page = 1
 
     def get_content(self):
-        content = self.content.select('div#zwconbody div')[0]
+        content = self.content.select('div#zwconbody div')[0].prettify()
         return content
 
     def get_author(self):
         """Return:
                  author_id, author_name, author_url, fa_date, fa_time, fa_device
         """
-        author_sec = self.content.select('div#zwcontt div#zwconttb')[0]
+        try:
+            author_sec = self.content.select('div#zwcontt div#zwconttb')[0]
+        except IndexError:
+            self._write_err(self.resp.url, 'Get post author section failed')
+            return ('' for i in range(6))
         author = author_sec.select('div#zwconttbn strong a')[0]
         author_id = author['data-popper']
         author_name = author.text.strip()
@@ -39,36 +43,49 @@ class TieZi:
         if not self.reply_list:
             return None
         rl = []
-        for r in self.reply_list:
+        for i, r in enumerate(self.reply_list):
             # get id
             r_el = {}
             r_el['r_id'] = r['data-huifuid']
             # get author
-            r_author = r.select('div.zwlianame a')[0]
-            r_el['r_author_name'] = r_author.text.strip()
-            r_el['r_author_url'] = r_author['href']
-            r_el['r_author_id'] = r_author['data-popper']
-            # content
-            r_el['content'] = r.select('div.zwlitext')[0]
-            # date and time
-            r_el['r_date'] = r.select('div.zwlitime')[0].text.split(' ')[1]
-            r_el['r_time'] = r.select('div.zwlitime')[0].text.split(' ')[2]
-            # get reply content
-            reply = r.select('div.zwlitalkbox div.zwlitalkboxtext')
-            if not reply:
-                r_el['is_reply'] = 0
-                r_el['rr_id'] = ''
-                r_el['rr_author_name'] = ''
-                r_el['rr_author_id'] = ''
-                r_el['rr_author_url'] = ''
-                r_el['r_content'] = ''
+            r_author = r.select('div.zwlianame a')
+            if r_author:
+                r_author = r_author[0]
+                r_el['r_author_name'] = r_author.text.strip()
+                r_el['r_author_url'] = r_author['href']
+                r_el['r_author_id'] = r_author['data-popper']
             else:
-                r_el['is_reply'] = 1
-                r_el['rr_id'] = reply[0]['data-huifuid']
-                r_el['rr_author_name'] = reply[0].select('a')[0].text
-                r_el['rr_author_id'] = reply[0].select('a')[0]['data-popper']
-                r_el['rr_author_url'] = reply[0].select('a')[0]['href']
-                r_el['r_content'] = reply[0].select('a')[0]
+                try:
+                    r_el['r_author_name'] = r.select('div.zwlianame span.gray')[0].text
+                except IndexError:
+                    self._write_err(self.resp.url, str(i) + ' reply', 'Get reply list error', r.prettify())
+                    continue
+            try:
+                r_el['content'] = r.select('div.zwlitext')[0].prettify()
+                r_el['r_date'] = r.select('div.zwlitime')[0].text.split(' ')[1]
+                r_el['r_time'] = r.select('div.zwlitime')[0].text.split(' ')[2]
+            except IndexError:
+                self._write_err(self.resp.url, str(i) + ' reply', 'Get reply content/datetime error', r.prettify())
+                continue
+            try:
+                reply = r.select('div.zwlitalkbox div.zwlitalkboxtext')
+                if not reply:
+                    r_el['is_reply'] = 0
+                    # r_el['rr_id'] = ''
+                    # r_el['rr_author_name'] = ''
+                    # r_el['rr_author_id'] = ''
+                    # r_el['rr_author_url'] = ''
+                    # r_el['r_content'] = ''
+                else:
+                    r_el['is_reply'] = 1
+                    r_el['rr_id'] = reply[0]['data-huifuid']
+                    r_el['rr_author_name'] = reply[0].select('a')[0].text
+                    r_el['rr_author_id'] = reply[0].select('a')[0]['data-popper']
+                    r_el['rr_author_url'] = reply[0].select('a')[0]['href']
+                    r_el['r_content'] = reply[0].select('a')[0]
+            except IndexError:
+                self._write_err(self.resp.url, str(i) + ' reply', 'Get Re-reply list error', reply[0].prettify())
+                continue
             rl.append(r_el)
         return rl
 
@@ -95,7 +112,10 @@ class TieZi:
     def fetch_tiezi_details(self):
         if not self.resp:
             return 0
-        self.tiezi['content'] = self.get_content()
+        try:
+            self.tiezi['content'] = self.get_content()
+        except IndexError as e:
+            self._write_err(self.resp.url, 'Get content error.')
         self.tiezi['author_id'],\
         self.tiezi['author_name'],\
         self.tiezi['author_url'],\
@@ -111,3 +131,10 @@ class TieZi:
             if not self.get_next_page():
                 break
         return self.tiezi
+
+    def _write_err(self, url, *kargs):
+        self.errf.write('\n###################\n'+url+'\n')
+        for arg in kargs:
+            self.errf.write(arg)
+            self.errf.write('\n')
+        self.errf.write('######################\n')

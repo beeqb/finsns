@@ -31,7 +31,7 @@ class GuBa:
     def fetch_posts(self):
         new_tiezis = self.postlist.fetch_posts()
         new_tiezis, is_stop = self.check_tiezis(new_tiezis)
-        self.tiezis.append(new_tiezis)
+        self.tiezis = self.tiezis + new_tiezis
         return is_stop
 
     def get_pl(self):

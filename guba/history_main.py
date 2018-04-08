@@ -1,28 +1,36 @@
 # -*- coding: utf-8 -*-
 
-import json
+import pickle
+import time
+from gevent.pool import Pool
 from guba import GuBa
 from crawler import Crawler
+import sys;sys.setrecursionlimit(100000)
 
 
-columns = ['id', 'author_name', 'author_id', 'author_url', 'content', 'is_reply', 'r_id', 'r_author_name', 'r_author_id', 'r_author_url', 'r_content']
+def get_stock(stock, crawler, errfile):
+    print('Start to fetch %s:...' % stock)
+    s_t = time.time()
+    guba = GuBa(stock, crawler, '2016', '2017', errfile)
+    tiezis = guba.run()
+    guba_data = {'code': stock, 'tiezis': tiezis}
+    e_t = time.time()
+    print(e_t - s_t, 's finish.')
+    with open('%s.pkl' % stock, 'wb') as wf:
+        pickle.dump(guba_data, wf)
+    return 1
 
 
 def main():
-    with open('code.txt', 'r') as rf:
+    with open('code_test.txt', 'r') as rf:
         codes = list(map(lambda x: x.strip(), rf.readlines()))
+    errfile = open('err.txt', 'w')
 
-    crawler = Crawler('err.txt')
-    results = {'std_err': 'err.txt', 'num': len(codes)}
-    results['gubas'] = []
-    for stock in codes:
-        guba = GuBa(stock, crawler, '2016', '2017')
-        tiezis = guba.run()
-        guba_data = {'code': stock, 'num': len(tiezis)}
-        guba_data['tiezis'] = tiezis
-        results['gubas'].append(guba_data)
-    with open('guba_data.json', 'w') as wf:
-        json.dump(results, wf)
+    crawler = Crawler(errfile)
+    pool = Pool(1000)
+
+    pars = pool.map(lambda c: get_stock(c, crawler, errfile), codes)
+    pool.join()
 
 
 if __name__ == '__main__':
