@@ -33,12 +33,12 @@ class Crawler:
                 if not resp.status_code == 200:
                     resp = None
                     self._write_err(url, resp.status_code)
-                is_finish = True
+                else:
+                    is_finish = True
             except Timeout:
                 if is_finish:
                     self._write_err(url, 'Connection Failed. Maybe blocked by server.')
                     break
-                gevent.sleep(300)
             except RequestException as e:
                 self._write_err(url, e)
                 is_finish = True
@@ -48,6 +48,7 @@ class Crawler:
                 if is_finish:
                     return resp
                 else:
+                    gevent.sleep(300)
                     is_finish = True
 
     # def _check(self, resps, urls, rt):

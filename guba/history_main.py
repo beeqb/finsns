@@ -12,7 +12,7 @@ import sys;sys.setrecursionlimit(100000)
 def get_stock(stock, crawler, errfile, elock):
     print('Start to fetch %s:...' % stock)
     s_t = time.time()
-    guba = GuBa(stock, crawler, '2016', '2017', errfile, elock)
+    guba = GuBa(stock, crawler, 2016, 2017, errfile, elock)
     tiezis = guba.run()
     guba_data = {'code': stock, 'tiezis': tiezis}
     e_t = time.time()
@@ -33,8 +33,10 @@ def main():
     pool = Pool(1000)
     elock = BoundedSemaphore()
 
-    pars = pool.map(lambda c: get_stock(c, crawler, perrfile, elock), codes)
-    pool.join()
+    #pars = pool.map(lambda c: get_stock(c, crawler, perrfile, elock), codes)
+    for stock in codes:
+        get_stock(stock, crawler, perrfile, elock)
+    #pool.join()
 
 
 if __name__ == '__main__':

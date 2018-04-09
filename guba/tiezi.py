@@ -24,7 +24,7 @@ class TieZi:
         try:
             author_sec = self.content.select('div#zwcontt div#zwconttb')[0]
         except IndexError:
-            self._write_err(self.resp.url, 'Get post author section failed')
+            self._write_err(self.resp.url, self.url, 'Get post author section failed')
             return ('' for i in range(6))
         try:
             author = author_sec.select('div#zwconttbn strong a')[0]
@@ -32,7 +32,7 @@ class TieZi:
             author_name = author.text.strip()
             author_url = author['href']
         except IndexError:
-            self._write_err(self.resp.url, 'Get post author id, name, url error.')
+            self._write_err(self.resp.url, self.url, 'Get post author id, name, url error.')
             author_id = ''
             author_name = ''
             author_url = ''
@@ -90,7 +90,7 @@ class TieZi:
                     r_el['rr_author_url'] = reply[0].select('a')[0]['href']
                     r_el['r_content'] = reply[0].select('a')[0]
             except IndexError:
-                self._write_err(self.resp.url, str(i) + ' reply', 'Get Re-reply list error', reply[0].prettify())
+                self._write_err(self.resp.url, self.url, str(i) + ' reply', 'Get Re-reply list error', reply[0].prettify())
                 continue
             rl.append(r_el)
         return rl
@@ -98,11 +98,12 @@ class TieZi:
     def get_next_page(self):
         self.page = self.page + 1
         url_base = self.base_url.split('.html')[0]
-        url = url_base + '_%d' % self.page + '.html'
-        return self._fetch_tiezi(url)
+        self.url = url_base + '_%d' % self.page + '.html'
+        return self._fetch_tiezi(self.url)
 
     def init_tiezi(self, url):
         self.base_url = url
+        self.url = url
         return self._fetch_tiezi(url)
 
     def _fetch_tiezi(self, url):
@@ -121,7 +122,7 @@ class TieZi:
         try:
             self.tiezi['content'] = self.get_content()
         except IndexError as e:
-            self._write_err(self.resp.url, 'Get content error.')
+            self._write_err(self.resp.url, self.url, 'Get content error.')
         self.tiezi['author_id'],\
         self.tiezi['author_name'],\
         self.tiezi['author_url'],\

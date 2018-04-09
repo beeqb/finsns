@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from tiezi import TieZi
+from copy import deepcopy
 
 TIEZI_URL = 'http://guba.eastmoney.com/'
 
@@ -17,7 +18,7 @@ class PostList:
         '''Return: [(id, url, title, yuedu, pinglun), ...]   '''
         posts = []
         for x in self.posts_dom:
-            tiezi = {}
+            tiezi = dict()
             if x.select('em'):
                 continue
             url_doms = x.select('span.l3 a')
@@ -33,7 +34,7 @@ class PostList:
             tiezi['pinglun'] = x.select('span.l2')[0].text
             tiezi['pid'] = url.split(',')[2].split('.')[0]
             tiezi['url'] = TIEZI_URL + url
-            tiezi['detail'] = self.get_post_details(tiezi['url'])
+            tiezi['detail'] = deepcopy(self.get_post_details(tiezi['url']))
             posts.append(tiezi)
         return posts
 

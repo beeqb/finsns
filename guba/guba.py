@@ -9,8 +9,8 @@ GUBA_URL = 'http://guba.eastmoney.com/list,%s_%d.html'
 class GuBa:
     def __init__(self, code, crawler, s_date, e_date, errfile, elock):
         self.code = code
-        self.s_date = int(s_date)
-        self.e_date = int(e_date)
+        self.s_date = s_date
+        self.e_date = e_date
         self.crawler = crawler
         self.errf = errfile
         self.elock = elock
@@ -35,19 +35,13 @@ class GuBa:
         self.tiezis = self.tiezis + new_tiezis
         return is_stop
 
-    def get_pl(self):
-        return self.pl
-
-    def get_url(self):
-        return self.url
-
     def check_tiezis(self, tiezis):
         if not tiezis:
             return tiezis, True
         total_tiezis = len(tiezis)
         outdated_tiezis = 0
         new_tiezis = []
-        for idx, tiezi in enumerate(tiezis):
+        for tiezi in tiezis:
             while not self.elock.acquire():
                 self.elock.wait()
             try:
@@ -56,17 +50,20 @@ class GuBa:
                     new_tiezis.append(tiezi)
                 elif t_year < self.s_date:
                     outdated_tiezis = outdated_tiezis + 1
+                else:
+                    new_tiezis.append(tiezi)
             except:
+                total_tiezis = total_tiezis - 1
                 self._write_err(
                     'Mist Error. Date of tiezi is not well structured: .',
                     tiezi['detail']['fa_date'], tiezi['url'], tiezi['pid'])
-                print(tiezi['detail']['fa_date'], '\n', tiezi['url'])
             finally:
                 self.elock.release()
-        if outdated_tiezis / total_tiezis > 0.5:
-            return new_tiezis, True
-        else:
-            return new_tiezis, False
+        # if outdated_tiezis / total_tiezis > 0.5:
+        #     return new_tiezis, True
+        # else:
+        #     return new_tiezis, False
+        return tiezis, True
 
     def update_url(self):
         self.page = self.page + 1
