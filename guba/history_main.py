@@ -33,10 +33,10 @@ def main():
     pool = Pool(1000)
     elock = BoundedSemaphore()
 
-    #pars = pool.map(lambda c: get_stock(c, crawler, perrfile, elock), codes)
-    for stock in codes:
-        get_stock(stock, crawler, perrfile, elock)
-    #pool.join()
+    pars = pool.map(lambda c: get_stock(c, crawler, perrfile, elock), codes)
+    # for stock in codes:
+    #     get_stock(stock, crawler, perrfile, elock)
+    pool.join()
 
 
 if __name__ == '__main__':

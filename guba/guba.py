@@ -58,7 +58,6 @@ class GuBa:
             finally:
                 self.elock.release()
         if outdated_tiezis / total_tiezis > 0.5:
-            print(outdated_tiezis, total_tiezis)
             return new_tiezis, True
         else:
             return new_tiezis, False
