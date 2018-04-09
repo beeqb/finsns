@@ -34,7 +34,7 @@ class PostList:
             tiezi['pinglun'] = x.select('span.l2')[0].text
             tiezi['pid'] = url.split(',')[2].split('.')[0]
             tiezi['url'] = TIEZI_URL + url
-            tiezi['detail'] = deepcopy(self.get_post_details(tiezi['url']))
+            tiezi['detail'] = self.get_post_details(tiezi['url']).copy()
             posts.append(tiezi)
         return posts
 

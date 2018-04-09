@@ -50,8 +50,6 @@ class GuBa:
                     new_tiezis.append(tiezi)
                 elif t_year < self.s_date:
                     outdated_tiezis = outdated_tiezis + 1
-                else:
-                    new_tiezis.append(tiezi)
             except:
                 total_tiezis = total_tiezis - 1
                 self._write_err(
@@ -59,11 +57,11 @@ class GuBa:
                     tiezi['detail']['fa_date'], tiezi['url'], tiezi['pid'])
             finally:
                 self.elock.release()
-        # if outdated_tiezis / total_tiezis > 0.5:
-        #     return new_tiezis, True
-        # else:
-        #     return new_tiezis, False
-        return tiezis, True
+        if outdated_tiezis / total_tiezis > 0.5:
+            print(outdated_tiezis, total_tiezis)
+            return new_tiezis, True
+        else:
+            return new_tiezis, False
 
     def update_url(self):
         self.page = self.page + 1
