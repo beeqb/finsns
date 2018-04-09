@@ -26,10 +26,16 @@ class TieZi:
         except IndexError:
             self._write_err(self.resp.url, 'Get post author section failed')
             return ('' for i in range(6))
-        author = author_sec.select('div#zwconttbn strong a')[0]
-        author_id = author['data-popper']
-        author_name = author.text.strip()
-        author_url = author['href']
+        try:
+            author = author_sec.select('div#zwconttbn strong a')[0]
+            author_id = author['data-popper']
+            author_name = author.text.strip()
+            author_url = author['href']
+        except IndexError:
+            self._write_err(self.resp.url, 'Get post author id, name, url error.')
+            author_id = ''
+            author_name = ''
+            author_url = ''
         fa_info = author_sec.select('div.zwfbtime')[0].text.strip()
         fa_date = fa_info.split(' ')[1]
         fa_time = fa_info.split(' ')[2]
