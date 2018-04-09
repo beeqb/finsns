@@ -3,15 +3,16 @@
 import pickle
 import time
 from gevent.pool import Pool
+from gevent.lock import BoundedSemaphore
 from guba import GuBa
 from crawler import Crawler
 import sys;sys.setrecursionlimit(100000)
 
 
-def get_stock(stock, crawler, errfile):
+def get_stock(stock, crawler, errfile, elock):
     print('Start to fetch %s:...' % stock)
     s_t = time.time()
-    guba = GuBa(stock, crawler, '2016', '2017', errfile)
+    guba = GuBa(stock, crawler, '2016', '2017', errfile, elock)
     tiezis = guba.run()
     guba_data = {'code': stock, 'tiezis': tiezis}
     e_t = time.time()
@@ -25,12 +26,14 @@ def get_stock(stock, crawler, errfile):
 def main():
     with open('code_test.txt', 'r') as rf:
         codes = list(map(lambda x: x.strip(), rf.readlines()))
-    errfile = open('err.txt', 'w')
+    cerrfile = open('err.txt', 'w')
+    perrfile = open('html_parse_err.txt', 'w')
 
-    crawler = Crawler(errfile=errfile)
+    crawler = Crawler(errfile=cerrfile)
     pool = Pool(1000)
+    elock = BoundedSemaphore()
 
-    pars = pool.map(lambda c: get_stock(c, crawler, errfile), codes)
+    pars = pool.map(lambda c: get_stock(c, crawler, perrfile, elock), codes)
     pool.join()
 
 

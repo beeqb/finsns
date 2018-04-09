@@ -7,12 +7,13 @@ GUBA_URL = 'http://guba.eastmoney.com/list,%s_%d.html'
 
 
 class GuBa:
-    def __init__(self, code, crawler, s_date, e_date, errfile):
+    def __init__(self, code, crawler, s_date, e_date, errfile, elock):
         self.code = code
         self.s_date = int(s_date)
         self.e_date = int(e_date)
         self.crawler = crawler
         self.errf = errfile
+        self.elock = elock
         self.page = 1
         self.url = GUBA_URL % (self.code, self.page)
         self.postlist = PostList(self.crawler, self.errf)
@@ -47,11 +48,21 @@ class GuBa:
         outdated_tiezis = 0
         new_tiezis = []
         for idx, tiezi in enumerate(tiezis):
-            t_year = int(tiezi['detail']['fa_date'].split('-')[0])
-            if self.s_date <= t_year <= self.e_date:
-                new_tiezis.append(tiezi)
-            elif t_year < self.s_date:
-                outdated_tiezis = outdated_tiezis + 1
+            while not self.elock.acquire():
+                self.elock.wait()
+            try:
+                t_year = int(tiezi['detail']['fa_date'].split('-')[0])
+                if self.s_date <= t_year <= self.e_date:
+                    new_tiezis.append(tiezi)
+                elif t_year < self.s_date:
+                    outdated_tiezis = outdated_tiezis + 1
+            except:
+                self._write_err(
+                    'Mist Error. Date of tiezi is not well structured: .',
+                    tiezi['detail']['fa_date'], tiezi['url'], tiezi['pid'])
+                print(tiezi['detail']['fa_date'], '\n', tiezi['url'])
+            finally:
+                self.elock.release()
         if outdated_tiezis / total_tiezis > 0.5:
             return new_tiezis, True
         else:
@@ -71,3 +82,10 @@ class GuBa:
                 is_stop = self.fetch_posts()
                 self.update_url()
         return self.tiezis
+
+    def _write_err(self, *kargs):
+        self.errf.write('\n################\n')
+        for arg in kargs:
+            self.errf.write(arg)
+            self.errf.write('\n')
+        self.errf.write('################\n')
