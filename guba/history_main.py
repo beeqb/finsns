@@ -18,6 +18,7 @@ def get_stock(stock, crawler, errfile):
     print(e_t - s_t, 's finish.')
     with open('%s.pkl' % stock, 'wb') as wf:
         pickle.dump(guba_data, wf)
+    print('Finish fetching %s.' % stock)
     return 1
 
 
@@ -26,7 +27,7 @@ def main():
         codes = list(map(lambda x: x.strip(), rf.readlines()))
     errfile = open('err.txt', 'w')
 
-    crawler = Crawler(errfile)
+    crawler = Crawler(errfile=errfile)
     pool = Pool(1000)
 
     pars = pool.map(lambda c: get_stock(c, crawler, errfile), codes)
