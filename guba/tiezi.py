@@ -68,8 +68,9 @@ class TieZi:
                     continue
             try:
                 r_el['content'] = r.select('div.zwlitext')[0].prettify()
-                r_el['r_date'] = r.select('div.zwlitime')[0].text.split(' ')[1]
-                r_el['r_time'] = r.select('div.zwlitime')[0].text.split(' ')[2]
+                r_el['datetime'] = r.select('div.zwlitime')[0].text
+                r_el['r_date'] = r_el['datetime'].split(' ')[1]
+                r_el['r_time'] = r_el['datetime'].split(' ')[3]
             except IndexError:
                 self._write_err(self.resp.url, str(i) + ' reply', 'Get reply content/datetime error', r.prettify())
                 continue
