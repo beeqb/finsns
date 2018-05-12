@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from bs4 import BeautifulSoup
+import re
 
 class TieZi:
     def __init__(self, crawler=None, errfile=None):
@@ -12,6 +13,8 @@ class TieZi:
         self.base_url = ''
         self.content = None
         self.page = 1
+        self.p_date = re.compile('\d+-\d+-\d+')
+        self.p_time = re.compile('\d+:\d+:\d+')
 
     def get_content(self):
         content = self.content.select('div#zwconbody div')[0].prettify()
@@ -37,8 +40,8 @@ class TieZi:
             author_name = ''
             author_url = ''
         fa_info = author_sec.select('div.zwfbtime')[0].text.strip()
-        fa_date = fa_info.split(' ')[1]
-        fa_time = fa_info.split(' ')[2]
+        fa_date = self.p_date.search(fa_info).group(0)
+        fa_time = self.p_time.search(fa_info).group(0)
         fa_device = fa_info.split(' ')[-1]
         return author_id, author_name, author_url, fa_date, fa_time, fa_device
 
@@ -69,8 +72,8 @@ class TieZi:
             try:
                 r_el['content'] = r.select('div.zwlitext')[0].prettify()
                 r_el['datetime'] = r.select('div.zwlitime')[0].text
-                r_el['r_date'] = r_el['datetime'].split(' ')[1]
-                r_el['r_time'] = r_el['datetime'].split(' ')[3]
+                r_el['r_date'] = self.p_date.search(r_el['datetime']).group(0)
+                r_el['r_time'] = self.p_time.search(r_el['datetime']).group(0)
             except IndexError:
                 self._write_err(self.resp.url, str(i) + ' reply', 'Get reply content/datetime error', r.prettify())
                 continue
