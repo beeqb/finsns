@@ -33,6 +33,9 @@ def main():
     cerrfile = open('err_%s.txt' % err_st, 'w')
     perrfile = open('html_parse_err_%s.txt' % err_st, 'w')
 
+    cerrfile.write('This is error file for: %s \n %s \n\n\n' % (', '.join(codes), '=' * 66))
+    perrfile.write('This is error file for: %s \n %s \n\n\n' % (', '.join(codes), '=' * 66))
+
     crawler = Crawler(errfile=cerrfile)
     pool = Pool(10)
     elock = BoundedSemaphore()
