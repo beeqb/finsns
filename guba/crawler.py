@@ -44,7 +44,7 @@ class Crawler:
                     self._write_err(url, 'Connection Failed. Maybe blocked by server.')
                     break
             except RequestException as e:
-                self._write_err(url, e)
+                self._write_err(url, str(e))
                 is_finish = True
             except Exception as e:
                 self._write_err(url, str(e) + 'Super Error. No clue what happens.')
