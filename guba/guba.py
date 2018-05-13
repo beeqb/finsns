@@ -3,7 +3,8 @@
 from bs4 import BeautifulSoup
 from postlist import PostList
 
-GUBA_URL = 'http://guba.eastmoney.com/list,%s_%d.html'
+GUBA_PING_URL = 'http://guba.eastmoney.com/list,%s_%d.html'
+GUBA_FA_URL = 'http://guba.eastmoney.com/list,%s,f_%d.html'
 
 
 class GuBa:
@@ -15,7 +16,7 @@ class GuBa:
         self.errf = errfile
         self.elock = elock
         self.page = 1
-        self.url = GUBA_URL % (self.code, self.page)
+        self.url = GUBA_FA_URL % (self.code, self.page)
         self.postlist = PostList(self.crawler, self.errf)
         self.tiezis = []
 
@@ -58,13 +59,14 @@ class GuBa:
             finally:
                 self.elock.release()
         if outdated_tiezis / total_tiezis > 0.5:
+            print(outdated_tiezis, total_tiezis)
             return new_tiezis, True
         else:
             return new_tiezis, False
 
     def update_url(self):
         self.page = self.page + 1
-        self.url = GUBA_URL % (self.code, self.page)
+        self.url = GUBA_FA_URL % (self.code, self.page)
 
     def run(self):
         is_stop = False

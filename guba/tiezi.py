@@ -94,8 +94,12 @@ class TieZi:
                     r_el['rr_author_url'] = reply[0].select('a')[0]['href']
                     r_el['r_content'] = reply[0].select('a')[0]
             except IndexError:
-                self._write_err(self.resp.url, self.url, str(i) + ' reply', 'Get Re-reply list error', reply[0].prettify())
-                continue
+                try:
+                    self._write_err(self.resp.url, self.url, str(i) + ' reply', 'Get Re-reply list error', reply[0].prettify())
+                    continue
+                except:
+                    print(self.resp.url, self.url)
+                    continue
             rl.append(r_el)
         return rl
 
@@ -133,6 +137,7 @@ class TieZi:
         self.tiezi['fa_date'],\
         self.tiezi['fa_time'],\
         self.tiezi['fa_device'] = self.get_author()
+        self.tiezi['tiezi_url'] = self.base_url
         self.tiezi['replies'] = []
         while True:
             replies = self.get_reply_list()

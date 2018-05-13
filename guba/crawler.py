@@ -5,6 +5,8 @@ import gevent
 from gevent import monkey;monkey.patch_all()
 import requests
 from requests.exceptions import *
+from fake_useragent import UserAgent
+
 # import grequests
 
 
@@ -12,6 +14,8 @@ class Crawler:
     def __init__(self, size=1000, errfile = None):
         self.size = size
         self.errfile = errfile
+        self.ua = UserAgent()
+        self.headers = {'User-Agent': str(self.ua.chrome)}
 
     # def mfetch(self, urls):
     #     rs = (grequests.get(u, timeout=10) for u in urls)
@@ -29,7 +33,7 @@ class Crawler:
         is_finish = False
         while True:
             try:
-                resp = requests.get(url, timeout=10)
+                resp = requests.get(url, headers=self.headers, timeout=10)
                 if not resp.status_code == 200:
                     resp = None
                     self._write_err(url, resp.status_code)
