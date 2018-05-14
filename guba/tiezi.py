@@ -100,6 +100,8 @@ class TieZi:
                 except:
                     print(self.resp.url, self.url)
                     continue
+            except KeyError:
+                print(self.url, reply[0].prettify())
             rl.append(r_el)
         return rl
 

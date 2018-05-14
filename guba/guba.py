@@ -16,7 +16,9 @@ class GuBa:
         self.errf = errfile
         self.elock = elock
         self.page = 100
+        self.delta = 100
         self.is_search = 1
+        self.searched_pages = []
         self.url = GUBA_FA_URL % (self.code, self.page)
         self.postlist = PostList(self.crawler, self.errf)
         self.tiezis = []
@@ -39,9 +41,11 @@ class GuBa:
 
     def check_tiezis(self, tiezis):
         if not tiezis:
+            self.delta = 1
             return tiezis, True
         total_tiezis = len(tiezis)
         outdated_tiezis = 0
+        cur_tiezis = 0
         new_tiezis = []
         for tiezi in tiezis:
             while not self.elock.acquire():
@@ -50,6 +54,7 @@ class GuBa:
                 t_year = int(tiezi['detail']['fa_date'].split('-')[0])
                 if self.s_date <= t_year <= self.e_date:
                     new_tiezis.append(tiezi)
+                    cur_tiezis = cur_tiezis + 1
                 elif t_year < self.s_date:
                     outdated_tiezis = outdated_tiezis + 1
             except:
@@ -59,6 +64,9 @@ class GuBa:
                     tiezi['detail']['fa_date'], tiezi['url'], tiezi['pid'])
             finally:
                 self.elock.release()
+        if not self.is_search == 0:
+            self.update_search(tiezis, cur_tiezis)
+            return [], False
         if outdated_tiezis / total_tiezis > 0.5:
             print(outdated_tiezis, total_tiezis)
             return new_tiezis, True
@@ -66,10 +74,38 @@ class GuBa:
             return new_tiezis, False
 
     def update_url(self):
-        self.page = self.page + 1
+        self.page = self.page + self.delta
         self.url = GUBA_FA_URL % (self.code, self.page)
 
-    def update_search(self):
+    def update_search(self, tiezis, cur_tiezis):
+        s = self._is_begin(tiezis)
+        if s == 1 and cur_tiezis > 0:
+            self.is_search = 0
+            self.delta = 1
+        elif s == 1 and self.delta == 100:
+            self.is_search == 1
+        elif s == 1 and cur_tiezis == 0:
+            self.delta = max(abs(self.delta) // 2, 1)
+            self.is_search = 1
+        elif s == -1 and self.page not in self.searched_pages:
+            self.delta = min(-abs(self.delta) // 2, -1)
+            self.is_search = -1
+        elif s == -1:
+            self.is_search == 0
+            self.delta = 1
+        self.searched_pages.append(self.page)
+
+    def _is_begin(self, tiezis):
+        for tiezi in tiezis:
+            try:
+                s_year = int(tiezi['detail']['fa_date'].split('-')[0])
+                break
+            except:
+                continue
+        if s_year > self.s_date:
+            return 1
+        elif s_year <= self.s_date:
+            return -1
 
     def run(self):
         is_stop = False
