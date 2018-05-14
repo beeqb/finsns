@@ -15,7 +15,8 @@ class GuBa:
         self.crawler = crawler
         self.errf = errfile
         self.elock = elock
-        self.page = 1
+        self.page = 100
+        self.is_search = 1
         self.url = GUBA_FA_URL % (self.code, self.page)
         self.postlist = PostList(self.crawler, self.errf)
         self.tiezis = []
@@ -67,6 +68,8 @@ class GuBa:
     def update_url(self):
         self.page = self.page + 1
         self.url = GUBA_FA_URL % (self.code, self.page)
+
+    def update_search(self):
 
     def run(self):
         is_stop = False
