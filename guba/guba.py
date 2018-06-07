@@ -2,21 +2,22 @@
 
 from bs4 import BeautifulSoup
 from postlist import PostList
+from time import strptime
 
 GUBA_PING_URL = 'http://guba.eastmoney.com/list,%s_%d.html'
 GUBA_FA_URL = 'http://guba.eastmoney.com/list,%s,f_%d.html'
 
 
 class GuBa:
-    def __init__(self, code, crawler, s_date, e_date, errfile, elock):
+    def __init__(self, code, crawler, s_date, e_date, errfile, elock, s_page=100, delta=100):
         self.code = code
-        self.s_date = s_date
-        self.e_date = e_date
+        self.s_date = strptime(s_date, '%Y-%m-%d')
+        self.e_date = strptime(e_date, '%Y-%m-%d')
         self.crawler = crawler
         self.errf = errfile
         self.elock = elock
-        self.page = 100
-        self.delta = 100
+        self.page = s_page
+        self.delta = delta
         self.is_search = 1
         self.searched_pages = []
         self.url = GUBA_FA_URL % (self.code, self.page)
@@ -51,11 +52,11 @@ class GuBa:
             while not self.elock.acquire():
                 self.elock.wait()
             try:
-                t_year = int(tiezi['detail']['fa_date'].split('-')[0])
-                if self.s_date <= t_year <= self.e_date:
+                tiezi_date = strptime(tiezi['detail']['fa_date'], '%Y-%m-%d')
+                if self.s_date <= tiezi_date <= self.e_date:
                     new_tiezis.append(tiezi)
                     cur_tiezis = cur_tiezis + 1
-                elif t_year < self.s_date:
+                elif tiezi_date < self.s_date:
                     outdated_tiezis = outdated_tiezis + 1
             except:
                 total_tiezis = total_tiezis - 1
@@ -98,13 +99,13 @@ class GuBa:
     def _is_begin(self, tiezis):
         for tiezi in tiezis:
             try:
-                s_year = int(tiezi['detail']['fa_date'].split('-')[0])
+                s_date = strptime(tiezi['detail']['fa_date'], '%Y-%m-%d')
                 break
             except:
                 continue
-        if s_year > self.s_date:
+        if s_date > self.s_date:
             return 1
-        elif s_year <= self.s_date:
+        elif s_date <= self.s_date:
             return -1
 
     def run(self):
